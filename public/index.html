@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IP and Device Info</title>
+    <script src="https://cdn.jsdelivr.net/npm/bowser@2.11.0/es5.min.js"></script>
+    <style>
+      body {
+        font-family: "Courier New", Courier, monospace;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .container {
+        background-color: #1f1f1f;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 80%;
+        max-width: 600px;
+        overflow: hidden; /* Prevent overflow on small screens */
+        white-space: nowrap; /* Keep lines in one line */
+        line-height: 1.5;
+        font-size: 0.9rem;
+      }
+      .info-section {
+        margin-bottom: 20px;
+      }
+      .info-section h2 {
+        color: red;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        font-weight: normal;
+        margin-top: 0;
+      }
+      .info-line {
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .label {
+        font-weight: bold;
+        color: #f8f8f2;
+      }
+      #publicIpAddress {
+        color: #f8f8f2;
+      }
+      #localIpAddresses,
+      #hostname,
+      #browserInfo,
+      #osInfo {
+        color: #f8f8f2;
+        font-weight: normal;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="info-section" id="console">
+        <h2>IP and Device Information</h2>
+        <div class="info-line">
+          <span class="label">Public IP Address:</span>
+          <span id="publicIpAddress">Loading...</span>
+        </div>
+        <div class="info-line">
+          <span class="label">Local IP Addresses:</span>
+          <span id="localIpAddresses">Loading...</span>
+        </div>
+        <div class="info-line">
+          <span class="label">Hostname:</span>
+          <span id="hostname">Loading...</span>
+        </div>
+        <div class="info-line">
+          <span class="label">Browser:</span>
+          <span id="browserInfo">Loading...</span>
+        </div>
+        <div class="info-line">
+          <span class="label">OS:</span> <span id="osInfo">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function getDeviceDetails() {
+        const parser = bowser.getParser(window.navigator.userAgent);
+        const browser = parser.getBrowser();
+        const os = parser.getOS();
+        return {
+          browserName: browser.name,
+          browserVersion: browser.version,
+          osName: os.name,
+          osVersion: os.version,
+        };
+      }
+
+      async function logDeviceInfo() {
+        try {
+          const deviceDetails = getDeviceDetails();
+
+          // Retrieve local IP addresses
+          const localIpResponse = await fetch("/api/local-ip");
+          if (!localIpResponse.ok) {
+            throw new Error(
+              "Network response was not ok " + localIpResponse.statusText
+            );
+          }
+          const localIpData = await localIpResponse.json();
+
+          document.getElementById("publicIpAddress").textContent =
+            localIpData.publicIpAddress;
+          document.getElementById("localIpAddresses").textContent =
+            localIpData.localIpAddresses.join(", ");
+          document.getElementById("hostname").textContent =
+            localIpData.hostname;
+          document.getElementById(
+            "browserInfo"
+          ).textContent = `${deviceDetails.browserName} ${deviceDetails.browserVersion}`;
+          document.getElementById(
+            "osInfo"
+          ).textContent = `${deviceDetails.osName} ${deviceDetails.osVersion}`;
+        } catch (error) {
+          console.error("Error logging device info:", error);
+        }
+      }
+
+      logDeviceInfo();
+    </script>
+  </body>
+</html>
