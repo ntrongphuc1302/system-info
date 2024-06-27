@@ -13,16 +13,29 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Endpoint to get local IP addresses and public IP
 app.get("/api/local-ip", async (req, res) => {
-  const localIpAddresses = getLocalIPv4Addresses();
-  const publicIpAddress = await getPublicIpAddress();
+  try {
+    const localIpAddresses = getLocalIPv4Addresses();
+    const publicIpAddress = await getPublicIpAddress();
 
-  const deviceInfo = {
-    publicIpAddress,
-    localIpAddresses,
-    hostname: os.hostname(),
-  };
+    const deviceInfo = {
+      publicIpAddress,
+      localIpAddresses,
+      hostname: os.hostname(),
+    };
 
-  res.json(deviceInfo);
+    // Logging to terminal
+    console.log("IP and Device Information:");
+    console.log(`Public IP Address: ${deviceInfo.publicIpAddress}`);
+    console.log(
+      `Local IP Addresses: ${deviceInfo.localIpAddresses.join(", ")}`
+    );
+    console.log(`Hostname: ${deviceInfo.hostname}`);
+
+    res.json(deviceInfo);
+  } catch (error) {
+    console.error("Error in /api/local-ip endpoint:", error.message);
+    res.status(500).json({ error: "Failed to retrieve IP information" });
+  }
 });
 
 // Function to get local IPv4 addresses
